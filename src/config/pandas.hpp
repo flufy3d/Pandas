@@ -275,6 +275,10 @@
 	// 调整 atcommand.cpp 中 atcommand_reload 配置重载指令的逻辑 [Sola丶小克]
 	// 我们希望在执行某些 reload 指令 (@reloadbattleconf) 时能重新计算全服玩家的属性和能力值
 	#define Pandas_FuncLogic_ATCOMMAND_RELOAD
+
+	// 重写 instance.cpp -> instance_destroy_command 函数
+	// 因为 rAthena 官方实现的该函数在切换队长后的处理并不友好 [Sola丶小克]
+	#define Pandas_FuncLogic_Instance_Destroy_Command
 #endif // Pandas_FuncIncrease
 
 // ============================================================================
@@ -411,13 +415,27 @@
 
 	#ifndef _WIN32
 		// 在 Linux 环境下输出信息时, 能转换成终端自适应编码 [Sola丶小克]
-		// 目前能够比较好的自适应 UTF-8, GBK, BIG5 编码
+		// 由于 rAthena 全部终端的输出默认只能使用 ANSI 编码, 完全没考虑会输出中文的情况
+		// 这会导致在终端输出中文的时候只能是 GBK 或 BIG5 中的其中一种,
+		// 为了让终端显示中文的角色名, 通常只能将系统的语言设置为 GBK 或 BIG5 其中一种编码
+		// 
+		// 但现在 UTF8 的支持已经是 Liunx 终端的标配,
+		// 我们完全可以在 GBK 或 BIG5 字符输出的时候将其转变成 UTF8 编码输出.
+		// 启用此选项后, 程序会根据系统语言, 将对应编码的文本在输出到终端之前转换成 UTF8 编码再输出
+		// 以此解决乱码问题, 使之可以完美呈现中文控制台信息...
+		//
+		// 注意: 当前仅支持终端编码为 utf8 时的转化, 请确保 locale 指令返回的语言选项中符合以下任何一种:
+		//      - POSIX
+		//      - C.utf8
+		//      - en_US.utf8
+		//      - zh_CN.utf8
+		//      - zh_TW.utf8
+		// 可以通过 export LANG="zh_TW.utf8" 这样的方式来临时切换编码进行测试
+		// 
+		// 使用 locale -a 可以观察本机可以启用的编码, 如若类似 zh_CN.utf8 等选项不在返回值中,
+		// 那么说明你的系统没有安装中文语言包, 不同的 Linux 发行版安装中文语言包的方法各有不同, 请上网查阅
 		#define Pandas_Console_Charset_SmartConvert
 	#endif // _WIN32
-
-	// 是否简单实现队长用于销毁副本的"面板按钮"功能 [Sola丶小克]
-	// 目前仅在 2018-06-20 版本中测试过, 启用此开关将实现 0x02cf 封包的处理
-	#define Pandas_Quick_Implement_Dungeon_Command
 
 	// 建立 MySQL 连接的时候主动禁止 SSL 模式 [Sola丶小克]
 	// 在 MySQL 8.0 (或更早之前的某个版本) 开始, 由于 MySQL 默认启用了 SSL 连接模式.
@@ -538,6 +556,12 @@
 	// 在 unit_walktoxy_sub 函数中, 如果发现当前坐标和目的地坐标一致, 那么放弃移动.
 	// 但问题更本质的原因是: 为什么会出现这样的情况...
 	#define Pandas_Fix_Same_Coordinate_Move_Logic
+
+	// 修正更换队长后, 新队长无法看到销毁副本按钮的问题
+	// 此选项开关需要依赖 Pandas_FuncLogic_Instance_Destroy_Command 的拓展 [Sola丶小克]
+	#ifdef Pandas_FuncLogic_Instance_Destroy_Command
+		#define Pandas_Fix_Dungeon_Command_Status_Refresh
+	#endif // Pandas_FuncLogic_Instance_Destroy_Command
 #endif // Pandas_Bugfix
 
 // ============================================================================
@@ -805,7 +829,10 @@
 #ifdef Pandas_Mapflags
 	// 是否启用 mobinfo 地图标记 [Sola丶小克]
 	// 该标记用于指定某地图的 show_mob_info 值, 以此控制该地图魔物名称的展现信息
-	#define Pandas_MapFlag_Mobinfo
+	// 此地图标记依赖 Pandas_MobInfomation_Extend 的拓展
+	#ifdef Pandas_MobInfomation_Extend
+		#define Pandas_MapFlag_Mobinfo
+	#endif // Pandas_MobInfomation_Extend
 
 	// 是否启用 noautoloot 地图标记 [Sola丶小克]
 	// 该标记用于在给定此标记的地图上禁止玩家使用自动拾取功能, 或使已激活的自动拾取功能失效

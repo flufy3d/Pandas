@@ -33,6 +33,12 @@
 	#define MAX_HOTKEYS 38
 #endif
 
+#if PACKETVER_MAIN_NUM >= 20190522 || PACKETVER_RE_NUM >= 20190508 || PACKETVER_ZERO_NUM >= 20190605
+	#define MAX_HOTKEYS_DB ((MAX_HOTKEYS) * 2)
+#else
+	#define MAX_HOTKEYS_DB MAX_HOTKEYS
+#endif
+
 #define MAX_MAP_PER_SERVER 1500 /// Maximum amount of maps available on a server
 #define MAX_INVENTORY 100 ///Maximum items in player inventory
 /** Max number of characters per account. Note that changing this setting alone is not enough if the client is not hexed to support more characters as well.
@@ -498,7 +504,7 @@ struct mmo_charstatus {
 	uint32 mother;
 	uint32 child;
 
-	unsigned int base_exp,job_exp;
+	t_exp base_exp,job_exp;
 	int zeny;
 
 	short class_; ///< Player's JobID
@@ -534,7 +540,7 @@ struct mmo_charstatus {
 
 	struct s_friend friends[MAX_FRIENDS]; //New friend system [Skotlex]
 #ifdef HOTKEY_SAVING
-	struct hotkey hotkeys[MAX_HOTKEYS];
+	struct hotkey hotkeys[MAX_HOTKEYS_DB];
 #endif
 	bool show_equip,allow_party;
 	short rename;
@@ -552,6 +558,7 @@ struct mmo_charstatus {
 	uint32 uniqueitem_counter;
 
 	unsigned char hotkey_rowshift;
+	unsigned char hotkey_rowshift2;
 	unsigned long title_id;
 };
 
@@ -641,7 +648,7 @@ struct map_session_data;
 struct guild_member {
 	uint32 account_id, char_id;
 	short hair,hair_color,gender,class_,lv;
-	uint64 exp;
+	t_exp exp;
 	short online,position;
 	char name[NAME_LENGTH];
 	struct map_session_data *sd;
@@ -676,8 +683,8 @@ struct Channel;
 struct guild {
 	int guild_id;
 	short guild_lv, connect_member, max_member, average_lv;
-	uint64 exp;
-	unsigned int next_exp;
+	t_exp exp;
+	t_exp next_exp;
 	int skill_point;
 	char name[NAME_LENGTH],master[NAME_LENGTH];
 	struct guild_member member[MAX_GUILD];
@@ -689,7 +696,7 @@ struct guild {
 	struct guild_expulsion expulsion[MAX_GUILDEXPULSION];
 	struct guild_skill skill[MAX_GUILDSKILL];
 	struct Channel *channel;
-	unsigned short instance_id;
+	int instance_id;
 	time_t last_leader_change;
 
 	/* Used by char-server to save events for guilds */
@@ -980,8 +987,7 @@ enum e_job {
 enum e_sex {
 	SEX_FEMALE = 0,
 	SEX_MALE,
-	SEX_SERVER,
-	SEX_ACCOUNT = 99
+	SEX_SERVER
 };
 
 /// Item Bound Type
