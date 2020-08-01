@@ -124,7 +124,7 @@ enum e_console_encoding PandasUtf8::getConsoleEncoding() {
 	else if (boost::icontains(szLanginfo, "ANSI_X3.4-1968"))
 		return CONSOLE_ENCODING_LATIN1;
 	else {
-		printf("%s: Unsupport codeset: %s, defaulting to latin1\n", __func__, szLanginfo);
+		ShowWarning("%s: Unsupport codeset: %s, defaulting to latin1\n", __func__, szLanginfo);
 	}
 
 	return CONSOLE_ENCODING_LATIN1;
@@ -165,7 +165,7 @@ enum e_system_language PandasUtf8::getSystemLanguage() {
 	else if (boost::iequals(szLocale, "C"))
 		return SYSTEM_LANGUAGE_ENG;
 	else {
-		printf("%s: Unsupport locale: %s, defaulting to english\n", __func__, szLocale);
+		ShowWarning("%s: Unsupport locale: %s, defaulting to english\n", __func__, szLocale);
 	}
 
 	return SYSTEM_LANGUAGE_ENG;
